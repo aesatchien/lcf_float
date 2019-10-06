@@ -12,17 +12,17 @@ import numpy as np
 ip='201'
 # -------- WEB SECTION -----------
 # Set up the urls that the br-EFB responds to
-current_url = 'http://192.168.1.'+ip+'/current.php'
-settings_url = 'http://192.168.1.'+ip+'/settings.php'
-shows_url = 'http://192.168.1.'+ip+'/shows.php'
-post_url = 'http://192.168.1.'+ip+'/command.php'
+current_url = 'http://192.168.2.'+ip+'/current.php'
+settings_url = 'http://192.168.2.'+ip+'/settings.php'
+shows_url = 'http://192.168.2.'+ip+'/shows.php'
+post_url = 'http://192.168.2.'+ip+'/command.php'
 
 ipdict = {'a':'200','b':'201'}
 def set_banks():
     ips=['200','201','202','203']
     for ip in ips:
         try:
-            with urllib.request.urlopen('http://192.168.1.'+ip+'/settings.php',data=None, timeout=1.5) as url:
+            with urllib.request.urlopen('http://192.168.2.'+ip+'/settings.php',data=None, timeout=1.0) as url:
                 data = json.loads(url.read().decode())
                 dmx = data['first_channel']
                 if int(dmx)==6:
@@ -42,10 +42,10 @@ def set_urls(bank='a'):
         ip = ipdict['a']
     else:
         ip = ipdict['b']
-    current_url = 'http://192.168.1.'+ip+'/current.php'
-    settings_url = 'http://192.168.1.'+ip+'/settings.php'
-    shows_url = 'http://192.168.1.'+ip+'/shows.php'
-    post_url = 'http://192.168.1.'+ip+'/command.php'
+    current_url = 'http://192.168.2.'+ip+'/current.php'
+    settings_url = 'http://192.168.2.'+ip+'/settings.php'
+    shows_url = 'http://192.168.2.'+ip+'/shows.php'
+    post_url = 'http://192.168.2.'+ip+'/command.php'
 
 def get_brefb(brefb_url):
     '''generic function for returning one of the three json structures the br-EFB listens for'''
@@ -141,7 +141,7 @@ def acquire_telemetry(end_time=30, dt=0.1, bank='a'):
     set_urls(bank)
     sparkdata=[]
     for i in range(4):
-        sparkdata.append(list(np.zeros(10)))
+        sparkdata.append(list(np.zeros(8)))
     brdata = []
     start = time.time()
 
@@ -230,12 +230,15 @@ def update_progress(progress):
     block = int(round(bar_length * progress))
     clear_output(wait = True)
     text = f'Progress: [{"#"*block + "="*(bar_length-block)}] {100*progress:.1f}%'
-    print(text,end='\r', flush=True)
+    print('\r',text,end='', flush=True)
 
     
 # -*- coding: utf-8 -*-
 # Unicode: 9601, 9602, 9603, 9604, 9605, 9606, 9607, 9608
-bar = '▁▂▃▄▅▆▇█'
+#bar = '▁▂▃▄▅▆▇█'
+# get rid of those two the have a vastly different width
+bar = '▁▂▃▅▆▇'
+          
 barcount = len(bar)
  
 def sparkline(numbers, autoscale=True):
@@ -249,7 +252,7 @@ def sparkline(numbers, autoscale=True):
 
 def update_progress_sparkline(progress, sparkdata):
     '''progress bar to look at while waiting for data'''
-    bar_length = 20
+    bar_length = 10
     if isinstance(progress, int):
         progress = float(progress)
     if not isinstance(progress, float):
@@ -263,8 +266,8 @@ def update_progress_sparkline(progress, sparkdata):
         spark_string.append(sparkline(sparkdata[i],autoscale=False))
     block = int(round(bar_length * progress))
     clear_output(wait = True)
-    text = f'Progress: [{"#"*block + "="*(bar_length-block)}] {100*progress:.1f}%  {spark_string[0]}  {spark_string[1]}   {spark_string[2]}   {spark_string[3]}'
-    print(text,end='\r', flush=True)
+    text = f'Progress: [{"#"*block + "="*(bar_length-block)}] {100*progress:4.1f}%  0:{spark_string[0]:^8} 1:{spark_string[1]:^8} 2:{spark_string[2]:^8} 3:{spark_string[3]:^8}'
+    print('\r',text,end='', flush=True)
 
 # -------- ITEM CREATION SECTION -----------
 
