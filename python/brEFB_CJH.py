@@ -9,20 +9,24 @@ from IPython.display import clear_output
 import matplotlib.pyplot as plt
 import numpy as np
 
-ip='201'
+
 # -------- WEB SECTION -----------
-# Set up the urls that the br-EFB responds to
+# Set up the urls that the br-EFB responds to - this is deprecated, call set_banks to get them right
+ip='201'
 current_url = 'http://192.168.2.'+ip+'/current.php'
 settings_url = 'http://192.168.2.'+ip+'/settings.php'
 shows_url = 'http://192.168.2.'+ip+'/shows.php'
 post_url = 'http://192.168.2.'+ip+'/command.php'
 
-ipdict = {'a':'200','b':'201'}
+# if there are no banks connected and somehow we call the plot functions
+dummy_data = [[0.055, -0.936, -1.0, -0.92, -0.99, -0.015, -0.98, -1.0, -0.97], [0.21, -0.93, -1.0, -0.92, -0.99, -0.014, -0.98, -1.0, -0.97], [0.39, -0.93, -1.0, -0.92, -0.99, -0.01, -0.98, -1.0, -0.97], [0.55, -0.93, -1.0, -0.92, -0.99, -0.014, -0.98, -1.0, -0.97]]
+
+ipdict = {'a':None,'b':None}
 def set_banks():
     ips=['200','201','202','203']
     for ip in ips:
         try:
-            with urllib.request.urlopen('http://192.168.2.'+ip+'/settings.php',data=None, timeout=1.0) as url:
+            with urllib.request.urlopen('http://192.168.2.'+ip+'/settings.php',data=None, timeout=0.75) as url:
                 data = json.loads(url.read().decode())
                 dmx = data['first_channel']
                 if int(dmx)==6:
@@ -31,12 +35,15 @@ def set_banks():
                         ipdict['b']=ip
                 print(f'found dmx {dmx} at ip {ip}')
         except ue.URLError:
-            print(f'No answer at {ip}')
-            #need to find some way of keeping myself from using the bad ips
+            pass
+            #print(f'No answer at {ip}')
     print(f"Set bank a to {ipdict['a']} and bank b to {ipdict['b']}")
 
 def set_urls(bank='a'):
     '''probably a much cleaner way of doing this - one set for each, or a lambda for each'''
+    if ipdict[bank.lower()] is None:
+          print("Bank not connected")
+          return -1
     global current_url, settings_url, shows_url, post_url
     if bank.lower() == 'a':
         ip = ipdict['a']
@@ -46,6 +53,7 @@ def set_urls(bank='a'):
     settings_url = 'http://192.168.2.'+ip+'/settings.php'
     shows_url = 'http://192.168.2.'+ip+'/shows.php'
     post_url = 'http://192.168.2.'+ip+'/command.php'
+    return 0
 
 def get_brefb(brefb_url):
     '''generic function for returning one of the three json structures the br-EFB listens for'''
@@ -55,56 +63,19 @@ def get_brefb(brefb_url):
 
 def get_shows_df(bank='a'):
     '''define a pandas data frame with the current shows, axis config, etc'''
-    set_urls(bank)
+    if set_urls(bank) == -1:
+          return
     show_data = get_brefb(shows_url)
     df = pd.DataFrame(show_data, columns =['name','length', 'frame_rate', 'steppable','end_action']) 
     return df
 
 def get_conf_df(bank='a'):
     '''pandas df of the current br-EFB config'''
-    set_urls(bank)
+    if set_urls(bank) == -1:
+          return
     conf = get_brefb(settings_url)
     df = pd.DataFrame(conf['axis'], columns = ['proportional_gain','integral_gain', 'derivative_gain','reversed','scaled_min','scaled_max'])
     return df
-
-def play_show_urllib(show):
-    body = {
-    "command":"play",
-    "value":show
-    }
-    req = urllib.request.Request(post_url)
-    req.add_header('Content-Type', 'application/json; charset=utf-8')
-    jsondata = json.dumps(body)
-    jsondataasbytes = jsondata.encode('utf-8')   # needs to be bytes
-    req.add_header('Content-Length', len(jsondataasbytes))
-    print (jsondataasbytes)
-    response = urllib.request.urlopen(req, jsondataasbytes)
-    print(f'Response from server using urllib: {response.read()}')
-
-def play_show_requests(show):
-    body = {"command":"play","value":show}
-    jsondata = json.dumps(body)
-    print (jsondata)
-    response = requests.post(post_url, json=jsondata)
-    print(f'Response from server using requests and json.dumps: {response.content}')
-    response = requests.post(post_url, data=body)
-    print(f'Response from server using requests and python dictionary: {response.content}')
-    
-def stop_show_requests():
-    body = {'command':'stop'}
-    payload = '{"command":"stop"}'.encode('utf-8')
-    jsondata = json.dumps(body)
-    print (jsondata)
-    # this jsondata one seems to send a '"{\\"command\\": \\"stop\\"}"'
-    response = requests.post(post_url, json=jsondata)
-    print(f'Response from server using requests and json.dumps: {response.content}')
-    # this data=bode one seems to send 'command=stop'
-    time.sleep(0.25)
-    response = requests.post(post_url, data=body)
-    print(f'Response from server using requests and python dictionary: {response.content}')
-    time.sleep(0.25)
-    response = requests.post(post_url, data=payload)
-    print(f'Response from server using requests and a plain encoded string: {response.content}')
     
 def show_length(shows,show):
     '''return the length of a show in seconds'''
@@ -112,7 +83,8 @@ def show_length(shows,show):
 
 def current_state_df(bank='a'):
     ''' function to print the current state of the br-EFB'''
-    set_urls(bank)
+    if set_urls(bank) == -1:
+          return
     brdata=[]
     axes_states = get_brefb(current_url)
     #print('Current state of axes:')
@@ -135,10 +107,11 @@ def get_axes_values():
     points = [item/2.0**15 for sublist in points for item in sublist]
     return points
     
-def acquire_telemetry(end_time=30, dt=0.1, bank='a'):
+def acquire_telemetry(end_time=30, dt=0.1, bank='a', print_spark=True):
     '''return a list of axis data over time in the form time, trans 0, sp 0 ... trans 3, sp 3'''
     #initialization
-    set_urls(bank)
+    if set_urls(bank) == -1:
+          return
     sparkdata=[]
     for i in range(4):
         sparkdata.append(list(np.zeros(8)))
@@ -151,25 +124,29 @@ def acquire_telemetry(end_time=30, dt=0.1, bank='a'):
         brdata.append(points)
         time.sleep(dt)
         #update_progress((time.time()-start)/end_time)
+
         for i in range(4):
             sparkdata[i].insert(0,points[2*(i+1)])
             sparkdata[i].pop()
-        update_progress_sparkline((time.time()-start)/end_time, sparkdata)
-    update_progress_sparkline(1,sparkdata)
+        update_progress_sparkline((time.time()-start)/end_time, sparkdata, print_spark)
+    update_progress_sparkline(1,sparkdata,print_spark)
     
     return brdata
 
-def prepare_all_telemetry(end_time=30, dt=0.1,axes=4,bank='a'):
+def prepare_all_telemetry(end_time=30, dt=0.1,axes=4,bank='a',print_spark=True):
     '''Plot data from all axes (or only a selected axis) for a given time and step'''
-    set_urls(bank)
+    if set_urls(bank)==-1:
+        dummy_df = pd.DataFrame(dummy_data, columns =['t', 'td 0', 'sp 0', 'td 1', 'sp 1', 'td 2', 'sp 2', 'td 3', 'sp 3']) 
+        return dummy_df, "Bank Not Connected, Dummy Data Shown"
     shows = get_shows_df()
     time_stamp = datetime.now()
     dt_string = time_stamp.strftime("%Y-%m-%d %H:%M:%S")
     label = shows.values[get_brefb(current_url)['current_show']][0] + f" (Bank {bank.upper()} at {dt_string} )"
-    brdata = acquire_telemetry(end_time, dt, bank)
+    brdata = acquire_telemetry(end_time, dt, bank, print_spark)
     df = pd.DataFrame(brdata, columns =['t', 'td 0', 'sp 0', 'td 1', 'sp 1', 'td 2', 'sp 2', 'td 3', 'sp 3']) 
     return df, label
 
+# -------- PLOTTING OPTIONS -----------
 def create_hvplot(df,label,axes=4):
     #import hvplot
     import hvplot.pandas
@@ -214,7 +191,7 @@ def create_matplot(df,label,axes=4, save=False, fname='test.png'):
         plt.savefig(fname)
     return plt.show()
 
-
+# -------- SPARKLINE AND CONSOLE OUTPUT -----------
 def update_progress(progress):
     '''progress bar to look at while waiting for data'''
     bar_length = 20
@@ -231,8 +208,7 @@ def update_progress(progress):
     clear_output(wait = True)
     text = f'Progress: [{"#"*block + "="*(bar_length-block)}] {100*progress:.1f}%'
     print('\r',text,end='', flush=True)
-
-    
+          
 # -*- coding: utf-8 -*-
 # Unicode: 9601, 9602, 9603, 9604, 9605, 9606, 9607, 9608
 #bar = '▁▂▃▄▅▆▇█'
@@ -250,7 +226,7 @@ def sparkline(numbers, autoscale=True):
     sparkline = ''.join(bar[min([barcount - 1,int((n - mn) / extent * barcount)])] for n in numbers)
     return sparkline
 
-def update_progress_sparkline(progress, sparkdata):
+def update_progress_sparkline(progress, sparkdata, print_spark = True):
     '''progress bar to look at while waiting for data'''
     bar_length = 10
     if isinstance(progress, int):
@@ -262,17 +238,60 @@ def update_progress_sparkline(progress, sparkdata):
     if progress >=1:
         progress = 1
     spark_string=[]
-    for i in range(4):
-        spark_string.append(sparkline(sparkdata[i],autoscale=False))
+    if print_spark:
+        for i in range(4):
+            spark_string.append(sparkline(sparkdata[i],autoscale=False))
     block = int(round(bar_length * progress))
     clear_output(wait = True)
-    text = f'Progress: [{"#"*block + "="*(bar_length-block)}] {100*progress:4.1f}%  0:{spark_string[0]:^8} 1:{spark_string[1]:^8} 2:{spark_string[2]:^8} 3:{spark_string[3]:^8}'
+    text = f'Progress: [{"#"*block + "="*(bar_length-block)}] {100*progress:4.1f}% '
+    if print_spark:
+        text = text + (f' 0:{spark_string[0]:^8} 1:{spark_string[1]:^8}' 
+        + f' 2:{spark_string[2]:^8} 3:{spark_string[3]:^8} ')
     print('\r',text,end='', flush=True)
 
-# -------- ITEM CREATION SECTION -----------
+
+          
+# -------- POSTING SECTION  -----------
+def play_show_urllib(show):
+    body = {
+    "command":"play",
+    "value":show
+    }
+    req = urllib.request.Request(post_url)
+    req.add_header('Content-Type', 'application/json; charset=utf-8')
+    jsondata = json.dumps(body)
+    jsondataasbytes = jsondata.encode('utf-8')   # needs to be bytes
+    req.add_header('Content-Length', len(jsondataasbytes))
+    print (jsondataasbytes)
+    response = urllib.request.urlopen(req, jsondataasbytes)
+    print(f'Response from server using urllib: {response.read()}')
+
+def play_show_requests(show):
+    body = {"command":"play","value":show}
+    jsondata = json.dumps(body)
+    print (jsondata)
+    response = requests.post(post_url, json=jsondata)
+    print(f'Response from server using requests and json.dumps: {response.content}')
+    response = requests.post(post_url, data=body)
+    print(f'Response from server using requests and python dictionary: {response.content}')
+    
+def stop_show_requests():
+    body = {'command':'stop'}
+    payload = '{"command":"stop"}'.encode('utf-8')
+    jsondata = json.dumps(body)
+    print (jsondata)
+    # this jsondata one seems to send a '"{\\"command\\": \\"stop\\"}"'
+    response = requests.post(post_url, json=jsondata)
+    print(f'Response from server using requests and json.dumps: {response.content}')
+    # this data=bode one seems to send 'command=stop'
+    time.sleep(0.25)
+    response = requests.post(post_url, data=body)
+    print(f'Response from server using requests and python dictionary: {response.content}')
+    time.sleep(0.25)
+    response = requests.post(post_url, data=payload)
+    print(f'Response from server using requests and a plain encoded string: {response.content}')
 
 
-# -------- UTILITY SECTION -----------
 
 
 
