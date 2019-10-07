@@ -1,4 +1,4 @@
-# CJH trying to talk to the GilderFluke br-EFB
+# CJH library for trying to talk to the GilderFluke br-EFB 9/2019
 import urllib.request, json 
 import urllib.error as ue
 import requests
@@ -9,26 +9,22 @@ from IPython.display import clear_output
 import matplotlib.pyplot as plt
 import numpy as np
 
-
 # -------- WEB SECTION -----------
-# Set up the urls that the br-EFB responds to - this is deprecated, call set_banks to get them right
-#ip='201'
-#current_url = 'http://192.168.2.'+ip+'/current.php'
-#settings_url = 'http://192.168.2.'+ip+'/settings.php'
-#shows_url = 'http://192.168.2.'+ip+'/shows.php'
-#post_url = 'http://192.168.2.'+ip+'/command.php'
 
 # if there are no banks connected and somehow we call the plot functions use this for a dummy plot
 dummy_data = [[0.055, -0.936, -1.0, -0.92, -0.99, -0.015, -0.98, -1.0, -0.97], [0.21, -0.93, -1.0, -0.92, -0.99, -0.014, -0.98, -1.0, -0.97], [0.39, -0.93, -1.0, -0.92, -0.99, -0.01, -0.98, -1.0, -0.97], [0.55, -0.93, -1.0, -0.92, -0.99, -0.014, -0.98, -1.0, -0.97]]
 # initialize sparklines
 sparks = {'a':np.zeros(8).tolist(),'b':np.zeros(8).tolist()}
+# initialize the ip dictionary for banks a and b
 ipdict = {'a':None,'b':None}
+
 def set_banks(verbose=True):
+    '''Search a short list of IPs to see if we see bank A (dmx=6) and bank B (dmx=10)'''
     global ipdict
-    ips=['200','201','202','203']
+    ips=['200','201','202','203']  # told the router to start DHCP at 200
     ipdict = {'a': None, 'b': None}
     if verbose:
-        print("\nSearching for banks...")
+        print("\nSearching for banks... ", end='', flush=True)
     for ip in ips:
         try:
             with urllib.request.urlopen('http://192.168.2.'+ip+'/settings.php',data=None, timeout=0.5) as url:
@@ -39,26 +35,12 @@ def set_banks(verbose=True):
                 elif int(dmx)==10:
                         ipdict['b']=ip
                 if verbose:
-                    print(f'found dmx {dmx} at ip {ip}')
+                    print(f' found dmx {dmx} at ip {ip}... ', end='',flush=True)
         except ue.URLError:
             pass
             #print(f'No answer at {ip}')
     if verbose:
-        print(f"Set bank a to {ipdict['a']} and bank b to {ipdict['b']}")
-
-def set_urls(bank='a'):
-    '''probably a much cleaner way of doing this - one set for each, or a lambda for each'''
-    if ipdict[bank.lower()] is None:
-          print(f"Bank {bank} not connected")
-          return -1
-    global current_url, settings_url, shows_url, post_url
-    ip = ipdict[bank.lower()]
-    current_url = 'http://192.168.2.'+ip+'/current.php'
-    settings_url = 'http://192.168.2.'+ip+'/settings.php'
-    shows_url = 'http://192.168.2.'+ip+'/shows.php'
-    post_url = 'http://192.168.2.'+ip+'/command.php'
-    return 0
-
+        print(f"\nSet bank a to {ipdict['a']} and bank b to {ipdict['b']}")
 
 def get_url(bank, target):
     '''single function to return a valid url... probably need to recheck validity every few minutes'''
@@ -77,12 +59,12 @@ def get_url(bank, target):
 
 def get_brefb(brefb_url):
     '''generic function for returning one of the three json structures the br-EFB listens for'''
-    data=[]
+    data=[]  # return an empty list on failure, so most of the subsequent dataframes are ok
     try:
         with urllib.request.urlopen(brefb_url, timeout=0.75) as url:
             data = json.loads(url.read().decode())
     except ue.URLError:
-        # we probably lost a bank that was previously ok
+        # we probably lost a bank that was previously ok - scan IP again
         set_banks()
     return data
 
@@ -103,10 +85,6 @@ def get_conf_df(bank='a'):
     conf = get_brefb(settings_url)
     df = pd.DataFrame(conf['axis'], columns = ['proportional_gain','integral_gain', 'derivative_gain','reversed','scaled_min','scaled_max'])
     return df
-    
-def show_length(shows,show):
-    '''return the length of a show in seconds'''
-    return shows.values[show][1] / shows.values[show][2]
 
 def current_state_df(bank='a'):
     ''' function to print the current state of the br-EFB'''
@@ -139,6 +117,8 @@ def get_axes_values(bank='a'):
     return points
 
 def update_sparks(banks=['a','b']):
+    '''updates a global snapshot of the eight positions [td0, sp0, td1 ...] for displaying bank states'''
+    # although really there is probably no reason to have this global unless i want to use it in more places
     global sparks
     for bank in banks:
         if ipdict[bank] is not None:
@@ -146,6 +126,7 @@ def update_sparks(banks=['a','b']):
                 points = get_axes_values(bank)
                 sparks[bank]= points
             except:
+                # need some error handling here to find out what went wrong
                 sparks[bank] = np.zeros(8).tolist()
         else:
             sparks[bank] = np.zeros(8).tolist()
@@ -155,7 +136,7 @@ def acquire_telemetry(end_time=30, dt=0.1, bank='a', print_spark=True):
     #initialization
     response, current_url = get_url(bank, 'current')
     if response == -1:
-        return
+        return []
     sparkdata=[]
     for i in range(4):
         sparkdata.append(list(np.zeros(8)))
@@ -166,9 +147,10 @@ def acquire_telemetry(end_time=30, dt=0.1, bank='a', print_spark=True):
         points = get_axes_values(bank)
         points.insert(0,time.time()-start)
         brdata.append(points)
-        time.sleep(dt)
+        time.sleep(dt)  # not sure how to make this wait smarter - may need a thread
         #update_progress((time.time()-start)/end_time)
 
+        # change this into snapshot, rolling or none
         for i in range(4):
             sparkdata[i].insert(0,points[2*(i+1)])
             sparkdata[i].pop()
@@ -261,7 +243,6 @@ def update_progress(progress):
 #bar = '▁▂▃▄▅▆▇█'
 # get rid of those two that have a vastly different width
 bar = '▁▂▃▅▆▇'
-          
 barcount = len(bar)
  
 def sparkline(numbers, autoscale=True):
@@ -349,6 +330,30 @@ def stop_show_requests(bank='a'):
 
 
 # -------- PICKLE SECTION -----------
-# -------- PANDAS SECTION -----------
+# -------- DEPRECATED SECTION -----------
 
+# Set up the urls that the br-EFB responds to - this is deprecated, call set_banks to get them right
+#ip='201'
+#current_url = 'http://192.168.2.'+ip+'/current.php'
+#settings_url = 'http://192.168.2.'+ip+'/settings.php'
+#shows_url = 'http://192.168.2.'+ip+'/shows.php'
+#post_url = 'http://192.168.2.'+ip+'/command.php'
 
+# deprecated, use the new get_url()
+def set_urls(bank='a'):
+    '''probably a much cleaner way of doing this - one set for each, or a lambda for each'''
+    if ipdict[bank.lower()] is None:
+          print(f"Bank {bank} not connected")
+          return -1
+    global current_url, settings_url, shows_url, post_url
+    ip = ipdict[bank.lower()]
+    current_url = 'http://192.168.2.'+ip+'/current.php'
+    settings_url = 'http://192.168.2.'+ip+'/settings.php'
+    shows_url = 'http://192.168.2.'+ip+'/shows.php'
+    post_url = 'http://192.168.2.'+ip+'/command.php'
+    return 0
+
+#deprecated - now explicitly send the amount of time for data acquisition
+def show_length(shows,show):
+    '''return the length of a show in seconds'''
+    return shows.values[show][1] / shows.values[show][2]
