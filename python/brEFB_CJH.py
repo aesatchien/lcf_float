@@ -23,22 +23,28 @@ dummy_data = [[0.055, -0.936, -1.0, -0.92, -0.99, -0.015, -0.98, -1.0, -0.97], [
 # initialize sparklines
 sparks = {'a':np.zeros(8).tolist(),'b':np.zeros(8).tolist()}
 ipdict = {'a':None,'b':None}
-def set_banks():
+def set_banks(verbose=True):
+    global ipdict
     ips=['200','201','202','203']
+    ipdict = {'a': None, 'b': None}
+    if verbose:
+        print("\nSearching for banks...")
     for ip in ips:
         try:
-            with urllib.request.urlopen('http://192.168.2.'+ip+'/settings.php',data=None, timeout=0.75) as url:
+            with urllib.request.urlopen('http://192.168.2.'+ip+'/settings.php',data=None, timeout=0.5) as url:
                 data = json.loads(url.read().decode())
                 dmx = data['first_channel']
                 if int(dmx)==6:
                         ipdict['a']=ip
                 elif int(dmx)==10:
                         ipdict['b']=ip
-                print(f'found dmx {dmx} at ip {ip}')
+                if verbose:
+                    print(f'found dmx {dmx} at ip {ip}')
         except ue.URLError:
             pass
             #print(f'No answer at {ip}')
-    print(f"Set bank a to {ipdict['a']} and bank b to {ipdict['b']}")
+    if verbose:
+        print(f"Set bank a to {ipdict['a']} and bank b to {ipdict['b']}")
 
 def set_urls(bank='a'):
     '''probably a much cleaner way of doing this - one set for each, or a lambda for each'''
@@ -71,8 +77,13 @@ def get_url(bank, target):
 
 def get_brefb(brefb_url):
     '''generic function for returning one of the three json structures the br-EFB listens for'''
-    with urllib.request.urlopen(brefb_url) as url:
-        data = json.loads(url.read().decode())
+    data=[]
+    try:
+        with urllib.request.urlopen(brefb_url, timeout=0.75) as url:
+            data = json.loads(url.read().decode())
+    except ue.URLError:
+        # we probably lost a bank that was previously ok
+        set_banks()
     return data
 
 def get_shows_df(bank='a'):
@@ -129,9 +140,15 @@ def get_axes_values(bank='a'):
 
 def update_sparks(banks=['a','b']):
     global sparks
-    for bank in [bank for bank in banks if ipdict[bank] is not None]:
-        points = get_axes_values(bank)
-        sparks[bank]= points
+    for bank in banks:
+        if ipdict[bank] is not None:
+            try:
+                points = get_axes_values(bank)
+                sparks[bank]= points
+            except:
+                sparks[bank] = np.zeros(8).tolist()
+        else:
+            sparks[bank] = np.zeros(8).tolist()
 
 def acquire_telemetry(end_time=30, dt=0.1, bank='a', print_spark=True):
     '''return a list of axis data over time in the form time, trans 0, sp 0 ... trans 3, sp 3'''

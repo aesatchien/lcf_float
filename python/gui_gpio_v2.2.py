@@ -7,6 +7,7 @@ import pyautogui, sys
 from gpiozero import LED
 import gpiozero
 import RPi.GPIO as GPIO
+import brEFB_CJH as brefb
 GPIO.setmode(GPIO.BCM)
 
 ##settings and filing
@@ -1076,7 +1077,7 @@ bank4Stat.grid(row = 4, column = 6, padx = xpadding, pady = ypadding)
 
 ##loop/interrupt setup
 counter = 0
-bar = '▁▂▃▅▆▇'
+brefb.set_banks()
 def task():
     # Updated this message printing so it keeps the terminal a bit more sane - 10/5/2019 CJH
     version = "2.2"
@@ -1084,8 +1085,13 @@ def task():
     counter = counter + 1
     print("Version {} Run Update: {} with {} threads active".format(version, counter, threading.active_count()) , end="\r", flush = True)
     bankStat()
-    bank1Stat.config(text="Counter: " + str(counter) +"\n\n" + bar)
-    win.after(1000, task)
+    # check every minute to see if we have changed banks
+    if counter % 120 == 0:
+        brefb.set_banks(verbose=False)
+    brefb.update_sparks()
+    bank1Stat.config(text=bank1Stat["text"] + "\nTD: " + brefb.sparkline(brefb.sparks['a'][::2],False) +"\nSP: "+brefb.sparkline(brefb.sparks['a'][1::2],False))
+    bank2Stat.config(text=bank2Stat["text"]  +"\nTD: " + brefb.sparkline(brefb.sparks['b'][::2],False) +"\nSP: "+brefb.sparkline(brefb.sparks['b'][1::2],False))
+    win.after(500, task)
 
 win.after(1000, task)
 win.mainloop()
