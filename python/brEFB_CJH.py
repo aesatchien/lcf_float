@@ -24,7 +24,7 @@ def set_banks(verbose=True):
     ips=['200','201','202','203']  # told the router to start DHCP at 200
     ipdict = {'a': None, 'b': None}
     if verbose:
-        print("\nSearching for banks... ", end='', flush=True)
+        print("Searching for banks... ", end='', flush=True)
     for ip in ips:
         try:
             with urllib.request.urlopen('http://192.168.2.'+ip+'/settings.php',data=None, timeout=0.5) as url:
@@ -61,7 +61,7 @@ def get_brefb(brefb_url):
     '''generic function for returning one of the three json structures the br-EFB listens for'''
     data=[]  # return an empty list on failure, so most of the subsequent dataframes are ok
     try:
-        with urllib.request.urlopen(brefb_url, timeout=0.75) as url:
+        with urllib.request.urlopen(brefb_url, timeout=4) as url:
             data = json.loads(url.read().decode())
     except ue.URLError:
         # we probably lost a bank that was previously ok - scan IP again
@@ -129,7 +129,8 @@ def update_sparks(banks=['a','b']):
                 # need some error handling here to find out what went wrong
                 sparks[bank] = np.zeros(8).tolist()
         else:
-            sparks[bank] = np.zeros(8).tolist()
+            #sparks[bank] = np.zeros(8).tolist()
+            sparks[bank] = [1,0,0.66,0.33,0.33,0.66,0,1]
 
 def acquire_telemetry(end_time=30, dt=0.1, bank='a', print_spark=True):
     '''return a list of axis data over time in the form time, trans 0, sp 0 ... trans 3, sp 3'''
@@ -217,7 +218,10 @@ def create_matplot(df,label,axes=4, save=False, fname='test.png'):
     plt.xlabel('time (s)')
     plt.ylabel('scaled br-EFB units')
     if save:
+        plt.ioff()
         plt.savefig(fname)
+        plt.close()
+        return
     return plt.show()
 
 # -------- SPARKLINE AND CONSOLE OUTPUT -----------
