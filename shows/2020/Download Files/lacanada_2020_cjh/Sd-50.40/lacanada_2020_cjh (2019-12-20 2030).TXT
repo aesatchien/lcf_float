@@ -1,0 +1,33 @@
+Eprom location: C:\CJH\LCTRFA\2020\Download Files\lacanada_2020_cjh\Sd-50.40\
+Eprom file:     lacanada_2020_cjh (2019-12-20 2030).A00
+Built:          12/20/19 20:31:00
+# Channels:     14
+Frame Rate:     30
+ 
+                  Length   Length   Brick   Brick   Eprom   Eprom
+  #  Show File   mm:ss.ff  frames   start    end    start    end 
+  1 2020 Main Box All Chars With Music
+ 03:39.00    6570     102    6671    1508   93487
+  2 2020 Main Box Test Steps With Music
+ 00:50.00    1500    6672    8171   93488  114487
+  3 2020 Main Box Test Sines With Music
+ 01:51.00    3330    8172   11501  114488  161107
+
+
+
+[EpromSettings]
+Count=3
+File0=C:\CJH\LCTRFA\2020\2020 Main Box All Chars With Music.sho
+File1=C:\CJH\LCTRFA\2020\2020 Main Box Test Steps With Music.sho
+File2=C:\CJH\LCTRFA\2020\2020 Main Box Test Sines With Music.sho
+EpromDrive=C:
+EpromDir=\CJH\LCTRFA\2020\Download Files\lacanada_2020_cjh\Sd-50.40\
+BrickAddr=0
+Start=0
+End=13
+File0Flags=237
+File0NextShow=1
+File1Flags=237
+File1NextShow=3
+File2Flags=237
+File2NextShow=3

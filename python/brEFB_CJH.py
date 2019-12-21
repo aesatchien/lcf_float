@@ -201,16 +201,16 @@ def create_hvplot(df,label,axes=4):
     p3= hv.HLine(0.0).opts(line_dash='dotted', color='black')
     return p1*p2*p3
 
-def create_matplot(df,label,axes=4, save=False, fname='test.png'):
+def create_matplot(df,label,axes=[0,1,2,3], save=False, fname='test.png'):
     ''' use matplotlib to display the data from brEFB'''
     # multiple line plot
     markersize = 3
     linewidth = 1.2
     colors=['blue', 'orange', 'green', 'red']
     plt.figure(num=None, figsize=(10,6),dpi=100)
-    for i in range(4):
+    for i in axes:
         plt.plot( 't', 'td '+str(i), data=df, marker='o', markerfacecolor=colors[i], markersize=markersize, color=colors[i], linewidth=0)
-    for i in range(4):
+    for i in axes:
         plt.plot( 't', 'sp '+str(i), data=df, marker='', color=colors[i], linewidth=linewidth, linestyle='dashed')
     #plt.legend()
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
