@@ -1085,15 +1085,15 @@ def task():
     counter = counter + 1
     print("Version {} Run Update: {} with {} threads active".format(version, counter, threading.active_count()) , end="\r", flush = True)
     bankStat()
-    # check every minute to see if we have changed banks
+    # check every minute to see if we have changed or lost banks
     if counter % 120 == 0:
         brefb.set_banks(verbose=False)
     brefb.update_sparks()
     bank1Stat.config(text=bank1Stat["text"] + "\nTD: " + brefb.sparkline(brefb.sparks['a'][::2],False) +"\nSP: "+brefb.sparkline(brefb.sparks['a'][1::2],False))
     bank2Stat.config(text=bank2Stat["text"]  +"\nTD: " + brefb.sparkline(brefb.sparks['b'][::2],False) +"\nSP: "+brefb.sparkline(brefb.sparks['b'][1::2],False))
-    win.after(500, task)
+    win.after(500, task) # um, is this redundant and causing a race condition?
 
-win.after(1000, task)
+win.after(1000, task)  # which one is the right one to keep?  probably this one
 win.mainloop()
 print("\nExiting...")
 

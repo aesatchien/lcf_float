@@ -17,6 +17,7 @@ dummy_data = [[0.055, -0.936, -1.0, -0.92, -0.99, -0.015, -0.98, -1.0, -0.97], [
 sparks = {'a':np.zeros(8).tolist(),'b':np.zeros(8).tolist()}
 # initialize the ip dictionary for banks a and b
 ipdict = {'a':None,'b':None}
+legends = {'a':['captain','singer','c_guitar','o_guitar'],'b':['c_car', 'o_car', 'wings', 'ladder']}
 
 def set_banks(verbose=True):
     '''Search a short list of IPs to see if we see bank A (dmx=6) and bank B (dmx=10)'''
@@ -86,6 +87,11 @@ def get_conf_df(bank='a'):
     conf = get_brefb(settings_url)
     df = pd.DataFrame(conf['axis'], columns = ['proportional_gain','integral_gain', 'derivative_gain','reversed','scaled_min','scaled_max'])
     return df
+
+def style_df(df, caption):
+    return df.style.\
+        set_caption(' - Bank ' + caption.upper() + ' -').\
+        set_table_styles([dict(selector="caption", props=[("text-align", "left"),("font-size", "150%"), ("color", 'black')])]) 
 
 def current_state_df(bank='a'):
     ''' function to print the current state of the br-EFB'''
@@ -201,19 +207,27 @@ def create_hvplot(df,label,axes=4):
     p3= hv.HLine(0.0).opts(line_dash='dotted', color='black')
     return p1*p2*p3
 
-def create_matplot(df,label,axes=[0,1,2,3], save=False, fname='test.png'):
+def create_matplot(df,label,axes=[0,1,2,3], save=False, fname='test.png', bank=None):
     ''' use matplotlib to display the data from brEFB'''
     # multiple line plot
     markersize = 3
     linewidth = 1.2
     colors=['blue', 'orange', 'green', 'red']
     plt.figure(num=None, figsize=(10,6),dpi=100)
+
+    if bank is None:
+        #label_text = list(map(str, axes))
+        label_text = ['td '+ str(index) for index in axes] + ['sp '+ str(index) for index in axes]
+    else:
+        label_text = ['td '+ legends[bank][index] for index in axes] + ['sp '+ legends[bank][index] for index in axes]
+        
+    # two for loops because I want the legend in this order, not because I'm an idiot        
     for i in axes:
-        plt.plot( 't', 'td '+str(i), data=df, marker='o', markerfacecolor=colors[i], markersize=markersize, color=colors[i], linewidth=0)
+        plt.plot( 't', 'td ' + str(i), data=df, marker='o', markerfacecolor=colors[i], markersize=markersize, color=colors[i], linewidth=0)
     for i in axes:
-        plt.plot( 't', 'sp '+str(i), data=df, marker='', color=colors[i], linewidth=linewidth, linestyle='dashed')
+        plt.plot( 't', 'sp ' + str(i), data=df, marker='', color=colors[i], linewidth=linewidth, linestyle='dashed')
     #plt.legend()
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    plt.legend(label_text, loc='center left', bbox_to_anchor=(1, 0.5))
     plt.ylim(-1.1,1.1)
     plt.title(label)
     plt.xlabel('time (s)')
