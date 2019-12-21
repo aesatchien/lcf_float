@@ -21,13 +21,14 @@ ipdict = {'a':None,'b':None}
 def set_banks(verbose=True):
     '''Search a short list of IPs to see if we see bank A (dmx=6) and bank B (dmx=10)'''
     global ipdict
-    ips=['200','201','202','203']  # told the router to start DHCP at 200
+    ips=['200','201','202']  # told the router to start DHCP at 200
+    ipdict_old = ipdict.copy()
     ipdict = {'a': None, 'b': None}
     if verbose:
         print("Searching for banks... ", end='', flush=True)
     for ip in ips:
         try:
-            with urllib.request.urlopen('http://192.168.2.'+ip+'/settings.php',data=None, timeout=0.5) as url:
+            with urllib.request.urlopen('http://192.168.2.'+ip+'/settings.php',data=None, timeout=1.5) as url:
                 data = json.loads(url.read().decode())
                 dmx = data['first_channel']
                 if int(dmx)==6:
@@ -36,7 +37,7 @@ def set_banks(verbose=True):
                         ipdict['b']=ip
                 if verbose:
                     print(f' found dmx {dmx} at ip {ip}... ', end='',flush=True)
-        except ue.URLError:
+        except:
             pass
             #print(f'No answer at {ip}')
     if verbose:

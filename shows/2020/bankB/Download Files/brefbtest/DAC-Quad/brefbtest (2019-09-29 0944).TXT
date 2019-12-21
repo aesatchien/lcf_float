@@ -1,0 +1,53 @@
+Eprom location: C:\Cory\LCTRFA\2020\bankB\Download Files\brefbtest\DAC-Quad\
+Eprom file:     brefbtest (2019-09-29 0944).A00
+Built:          09/29/19 09:44:45
+# Channels:     4
+Frame Rate:     30
+ 
+                  Length   Length   Brick   Brick   Eprom   Eprom
+  #  Show File   mm:ss.ff  frames   start    end    start    end 
+  1 CJHBrEFBTest_AllSines_12s
+ 00:12.00     360     195     554     924    2363
+  2 CJHBrEFBTest_AllSines_25s
+ 00:25.00     750     555    1304    2364    5363
+  3 CJHBrEFBTest_AllSines_50s
+ 00:50.00    1500    1305    2804    5364   11363
+  4 CJHBrEFBTest_AllZero
+ 00:21.01     631    2805    3435   11364   13887
+  5 CJHBrEFBTest_All25pct
+ 00:21.01     631    3436    4066   13888   16411
+  6 CJHBrEFBTest_All50pct
+ 00:21.01     631    4067    4697   16412   18935
+  7 CJHBrEFBTest_All100pct
+ 00:21.01     631    4698    5328   18936   21459
+
+
+
+[EpromSettings]
+Count=7
+File0=C:\Cory\LCTRFA\2020\bankB\CJHBrEFBTest_AllSines_12s.sho
+File1=C:\Cory\LCTRFA\2020\bankB\CJHBrEFBTest_AllSines_25s.sho
+File2=C:\Cory\LCTRFA\2020\bankB\CJHBrEFBTest_AllSines_50s.sho
+File3=C:\Cory\LCTRFA\2020\bankB\CJHBrEFBTest_AllZero.sho
+File4=C:\Cory\LCTRFA\2020\bankB\CJHBrEFBTest_All25pct.sho
+File5=C:\Cory\LCTRFA\2020\bankB\CJHBrEFBTest_All50pct.sho
+File6=C:\Cory\LCTRFA\2020\bankB\CJHBrEFBTest_All100pct.sho
+EpromDrive=C:
+EpromDir=\Cory\LCTRFA\2020\bankB\Download Files\brefbtest\DAC-Quad\
+BrickAddr=0
+Start=0
+End=3
+File0Flags=237
+File0NextShow=1
+File1Flags=237
+File1NextShow=2
+File2Flags=237
+File2NextShow=3
+File3Flags=205
+File3NextShow=0
+File4Flags=205
+File4NextShow=0
+File5Flags=205
+File5NextShow=0
+File6Flags=205
+File6NextShow=0

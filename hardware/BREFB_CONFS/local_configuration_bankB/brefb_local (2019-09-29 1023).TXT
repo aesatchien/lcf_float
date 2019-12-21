@@ -1,0 +1,58 @@
+Eprom location: C:\Cory\LCTRFA\2020\brEFB_local\Download Files\brefb_local\DAC-Quad\
+Eprom file:     brefb_local (2019-09-29 1023).A00
+Built:          09/29/19 10:23:49
+# Channels:     4
+Frame Rate:     30
+ 
+                  Length   Length   Brick   Brick   Eprom   Eprom
+  #  Show File   mm:ss.ff  frames   start    end    start    end 
+  1 brEFB_10s_sines
+ 00:10.00     300     214     513    1016    2215
+  2 brEFB_25s_sines
+ 00:25.00     750     514    1263    2216    5215
+  3 brEFB_50s_sines
+ 00:50.00    1500    1264    2763    5216   11215
+  4 brEFB_10s_servo
+ 00:10.00     300    2764    3063   11216   12415
+  5 brEFB_All_0pct
+ 00:10.00     300    3064    3363   12416   13615
+  6 brEFB_All_25pct
+ 00:12.00     360    3364    3723   13616   15055
+  7 brEFB_All_50pct
+ 00:10.00     300    3724    4023   15056   16255
+  8 brEFB_All_100pct
+ 00:10.00     300    4024    4323   16256   17455
+
+
+
+[EpromSettings]
+Count=8
+File0=C:\Cory\LCTRFA\2020\brEFB_local\brEFB_10s_sines.sho
+File1=C:\Cory\LCTRFA\2020\brEFB_local\brEFB_25s_sines.sho
+File2=C:\Cory\LCTRFA\2020\brEFB_local\brEFB_50s_sines.sho
+File3=C:\Cory\LCTRFA\2020\brEFB_local\brEFB_10s_servo.sho
+File4=C:\Cory\LCTRFA\2020\brEFB_local\brEFB_All_0pct.sho
+File5=C:\Cory\LCTRFA\2020\brEFB_local\brEFB_All_25pct.sho
+File6=C:\Cory\LCTRFA\2020\brEFB_local\brEFB_All_50pct.sho
+File7=C:\Cory\LCTRFA\2020\brEFB_local\brEFB_All_100pct.sho
+EpromDrive=
+EpromDir=
+BrickAddr=0
+Start=0
+End=3
+File0Flags=237
+File0NextShow=1
+File1Flags=237
+File1NextShow=2
+File2Flags=237
+File2NextShow=3
+File3Flags=237
+File3NextShow=4
+File4Flags=205
+File4NextShow=0
+File5Flags=205
+File5NextShow=0
+File6Flags=205
+File6NextShow=0
+File7Flags=205
+File7NextShow=0
