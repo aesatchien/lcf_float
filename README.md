@@ -1,2 +1,2 @@
 # lcf_float
-Tools and backups for the LCF float animation
+Tools and backups for the La Canada Flintridge Tournament of Roses Float animation
