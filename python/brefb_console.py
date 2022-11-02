@@ -13,10 +13,10 @@ console_df = None  # just in case we somehow miss a definition
 dummy_df = None
 
 # debug - pull the dummy df from the disk - really not necessary after I dubugged it
-with open('console.pkl', 'rb') as f:
-    dummy_df = pickle.load(f)
-for col in ['td dec', 'td 256', 'sp dec', 'sp 256', 'P gain', 'I gain', 'D gain', 'rev', 'td min', 'td max']:
-    dummy_df[col]='NA'
+#with open('console.pkl', 'rb') as f:
+#    dummy_df = pickle.load(f)
+#for col in ['td dec', 'td 256', 'sp dec', 'sp 256', 'P gain', 'I gain', 'D gain', 'rev', 'td min', 'td max']:
+#    dummy_df[col]='NA'
 
 
 def get_updates():

@@ -795,11 +795,11 @@ def playUpdate():
     if pauseState == 0:
         pauseState = 1
         playio.on()
-        playButton["text"] = "Play"
+        playButton["text"] = "Playing\n(tap to pause)"
     elif pauseState == 1:    
         pauseState = 0
         playio.off()
-        playButton["text"] = "Pause"
+        playButton["text"] = "Paused\n(tap to play)"
 def stopUpdate():
     pyautogui.moveTo(mouseRx,mouseRy)
     stopio.on()
@@ -1047,15 +1047,15 @@ en15Button.grid(row = 4, column = 4, padx = xpadding, pady = ypadding)
 en16Button = Button(win, text = ch16dis, font = myFont, command = ch16Update, bg = 'red', height = buttonh, width = buttonw)
 en16Button.grid(row = 4, column = 5, padx = xpadding, pady = ypadding)
 
-show1Button = Button(win, text = 'Show 1', font = myFont, command = show1Update, bg = 'gold', height = buttonh, width = buttonw)
+show1Button = Button(win, text = 'Start\nShow 1', font = myFont, command = show1Update, bg = 'gold', height = buttonh, width = buttonw)
 show1Button.grid(row = 5, column = 1, padx = xpadding, pady = ypadding)
-show2Button = Button(win, text = 'Show 2', font = myFont, command = show2Update, bg = 'gold', height = buttonh, width = buttonw)
+show2Button = Button(win, text = 'Start\nShow 2', font = myFont, command = show2Update, bg = 'gold', height = buttonh, width = buttonw)
 show2Button.grid(row = 5, column = 2, padx = xpadding, pady = ypadding)
 playButton = Button(win, text = 'Pause', font = myFont, command = playUpdate, bg = 'gold', height = buttonh, width = buttonw)
 playButton.grid(row = 5, column = 3, padx = xpadding, pady = ypadding)
-stopButton = Button(win, text = 'Stop', font = myFont, command = stopUpdate, bg = 'gold', height = buttonh, width = buttonw)
+stopButton = Button(win, text = 'End Show', font = myFont, command = stopUpdate, bg = 'gold', height = buttonh, width = buttonw)
 stopButton.grid(row = 5, column = 4, padx = xpadding, pady = ypadding)
-loadButton = Button(win, text = 'Load', font = myFont, command = loadUpdate, bg = 'white', height = buttonh, width = buttonw)
+loadButton = Button(win, text = 'Load\nSettings', font = myFont, command = loadUpdate, bg = 'white', height = buttonh, width = buttonw)
 loadButton.grid(row = 5, column = 5, padx = xpadding, pady = ypadding)
 saveButton = Button(win, text = 'Save / Exit', font = myFont, command = exitProg, bg = 'cyan', height = buttonh, width = buttonw)
 saveButton.grid(row = 5, column = 6, padx = xpadding, pady = ypadding)
@@ -1085,15 +1085,15 @@ def task():
     counter = counter + 1
     print("Version {} Run Update: {} with {} threads active".format(version, counter, threading.active_count()) , end="\r", flush = True)
     bankStat()
-    # check every minute to see if we have changed or lost banks
+    # check every minute to see if we have changed banks - timeout needs to be longer for this one otherwise we get errors
     if counter % 120 == 0:
         brefb.set_banks(verbose=False)
     brefb.update_sparks()
     bank1Stat.config(text=bank1Stat["text"] + "\nTD: " + brefb.sparkline(brefb.sparks['a'][::2],False) +"\nSP: "+brefb.sparkline(brefb.sparks['a'][1::2],False))
     bank2Stat.config(text=bank2Stat["text"]  +"\nTD: " + brefb.sparkline(brefb.sparks['b'][::2],False) +"\nSP: "+brefb.sparkline(brefb.sparks['b'][1::2],False))
-    win.after(500, task) # um, is this redundant and causing a race condition?
+    win.after(500, task)
 
-win.after(1000, task)  # which one is the right one to keep?  probably this one
+win.after(1000, task)
 win.mainloop()
 print("\nExiting...")
 
