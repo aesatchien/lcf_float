@@ -12,10 +12,11 @@ import signal
 import brEFB_CJH as brefb
 
 console_df = None  # just in case we somehow miss a definition
-dummy_df = None
 
 # debug - pull the dummy df from the disk - could explicitly define it in code, i guess
-with open('console.pkl', 'rb') as f:
+numbers = 'console.pkl'
+dashes = 'dummy.pkl'
+with open(dashes, 'rb') as f:
     dummy_df = pickle.load(f)
 #for col in ['td dec', 'td 256', 'sp dec', 'sp 256', 'P gain', 'I gain', 'D gain', 'rev', 'td min', 'td max']:
 #  with   dummy_df[col]='NA'
@@ -42,9 +43,6 @@ def get_updates():
     console_df.columns = ['axis', 'td dec', 'td 256', 'sp dec', 'sp 256', 'P gain', 'I gain', 'D gain', 'rev', 'td min',
                           'td max']
     return console_df
-
-def bold(s):
-    return '\033[1m' + s + '\033[0m'
 
 if __name__ == '__main__':
     screen = curses.initscr()
