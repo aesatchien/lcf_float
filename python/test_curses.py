@@ -43,6 +43,9 @@ def get_updates():
                           'td max']
     return console_df
 
+def bold(s):
+    return '\033[1m' + s + '\033[0m'
+
 if __name__ == '__main__':
     screen = curses.initscr()
     warning_line = 20
@@ -81,16 +84,16 @@ if __name__ == '__main__':
         offset = (80 - len(msg)) // 2
 
         # Update the buffer, adding text at different locations
-        screen.addstr(0, 0, f'{" " * offset}{msg}')
+        screen.addstr(0, 0, f'{" " * offset}{msg}', curses.A_BOLD)
         screen.addstr(2, 0, f'IP dict: {brefb.ipdict}\n')  # Python 3 required for unicode
         s = console_df.to_string().split('\n')
-        screen.addstr(4, 0, s[0])
-        screen.addstr(5, 0, '\n'.join(s[1:5]), curses.color_pair(2))
-        screen.addstr(9, 0, '\n'.join(s[5:]), curses.color_pair(3))
+        screen.addstr(4, 0, s[0], curses.A_BOLD)
+        screen.addstr(5, 0, '\n'.join(s[1:5]), curses.color_pair(2) | curses.A_BOLD)
+        screen.addstr(9, 0, '\n'.join(s[5:]), curses.color_pair(3) | curses.A_BOLD)
 
         quit_msg = f'press q to quit: '
         screen.addstr(warning_line, len(quit_msg), ' ')  # clear non-quittng characters
-        screen.addstr(warning_line, 0, quit_msg, curses.color_pair(1))
+        screen.addstr(warning_line, 0, quit_msg, curses.color_pair(1) | curses.A_BOLD)
 
         curses.curs_set(True) # lose the blinking cursor
 
