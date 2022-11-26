@@ -1,7 +1,6 @@
 # script to display all the LCFToR float BREFB values for tuning mechanisms
 # 20221030 CJH
 
-import pickle
 import curses
 import datetime
 import pandas as pd
@@ -13,12 +12,20 @@ import brEFB_CJH as brefb
 console_df = None  # just in case we somehow miss a definition
 dummy_df = None
 
+# empty df in case we don't have connectivity
+dummy_data = {'axis': {0: 'A0',  1: 'A1',  2: 'A2',  3: 'A3',  4: 'B0',  5: 'B1',  6: 'B2',  7: 'B3'},
+'td dec': {0: '----',  1: '----',  2: '----',  3: '----',  4: '----',  5: '----',  6: '----',  7: '----'},
+'td 256': {0: '----',  1: '----',  2: '----',  3: '----',  4: '----',  5: '----',  6: '----',  7: '----'},
+'sp dec': {0: '----',  1: '----',  2: '----',  3: '----',  4: '----',  5: '----',  6: '----',  7: '----'},
+'sp 256': {0: '----',  1: '----',  2: '----',  3: '----',  4: '----',  5: '----',  6: '----',  7: '----'},
+'P gain': {0: '----',  1: '----',  2: '----',  3: '----',  4: '----',  5: '----',  6: '----',  7: '----'},
+'I gain': {0: '----',  1: '----',  2: '----',  3: '----',  4: '----',  5: '----',  6: '----',  7: '----'},
+'D gain': {0: '----',  1: '----',  2: '----',  3: '----',  4: '----',  5: '----',  6: '----',  7: '----'},
+'rev': {0: '----',  1: '----',  2: '----',  3: '----',  4: '----',  5: '----',  6: '----',  7: '----'},
+'td min': {0: '----',  1: '----',  2: '----',  3: '----',  4: '----',  5: '----',  6: '----',  7: '----'},
+'td max': {0: '----',  1: '----',  2: '----',  3: '----',  4: '----',  5: '----',  6: '----',  7: '----'}}
+dummy_df = pd.DataFrame(dummy_data)
 
-# debug - pull the dummy df from the disk - really not necessary after I dubugged it
-with open('dummy.pkl', 'rb') as f:
-    dummy_df = pickle.load(f)
-#for col in ['td dec', 'td 256', 'sp dec', 'sp 256', 'P gain', 'I gain', 'D gain', 'rev', 'td min', 'td max']:
-#  with   dummy_df[col]='NA'
 
 
 def get_updates():
