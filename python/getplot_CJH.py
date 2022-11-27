@@ -17,17 +17,26 @@ if brefb.ipdict[bank] is None:
     quit()
 
 print("Acquiring data from bank {0} ...".format(bank), flush=True)
-df_br, label = brefb.prepare_all_telemetry(end_time=end_time, dt=.1, axes=4, bank=bank, print_spark=True)
+
+# label comes from the current show on the BREFB - not very useful
+try:
+    df_br, label = brefb.prepare_all_telemetry(end_time=end_time, dt=.1, axes=4, bank=bank, print_spark=True)
+except Exception as e:
+    print('Failure to acquire data: {0}.format(e)')
 #fname = 'test_bank_' + bank.lower() +'.png'
 fname = datetime.now().strftime('%Y%m%d_%H%M')+ '_bank_'+ bank.lower() +'.png'
 print("\nGenerating image and saving as {0} (~5s) ...".format(fname), flush=True)
-brefb.create_matplot(df_br,label,axes=[0,1,2,3],save=True,fname='.//pngs//'+ fname)
+# label = 'LCFTRA Hydraulics Test '  # more generic
+try:
+    brefb.create_matplot(df_br,label,axes=[0,1,2,3],save=True,fname='.//pngs//'+ fname)
+except Exception as e:
+    print('Failure to write png file: {0}.format(e)')
 #hv.save(br_plot, file_name)
 print("Calling image ...", flush=True)
 #os.system('gpicview '+ './/png//'+ fname + ' &')
 #os.system('display '+ './/png//'+ fname + ' &')
 if sys.platform == "win32":
     p = Path('pngs') / fname
-    os.system('mspaint.exe {0} + &'.format(p.absolute()))
+    os.system('mspaint.exe "{0}" + &'.format(p.absolute()))
 else: # linux on the pi
     os.system('display ' + './/png//' + fname + ' &')

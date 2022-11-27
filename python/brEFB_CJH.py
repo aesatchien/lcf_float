@@ -176,7 +176,8 @@ def prepare_all_telemetry(end_time=30, dt=0.1,axes=4,bank='a',print_spark=True):
     shows = get_shows_df(bank)
     time_stamp = datetime.now()
     dt_string = time_stamp.strftime("%Y-%m-%d %H:%M:%S")
-    label = shows.values[get_brefb(current_url)['current_show']][0] + f" (Bank {bank.upper()} at {dt_string} )"
+    label = f"LCFTRA Hydraulics Telemetry (Bank {bank.upper()} at {dt_string} )"
+    # label = shows.values[get_brefb(current_url)['current_show']][0] + f" (Bank {bank.upper()} at {dt_string} )"
     brdata = acquire_telemetry(end_time, dt, bank, print_spark)
     df = pd.DataFrame(brdata, columns =['t', 'td 0', 'sp 0', 'td 1', 'sp 1', 'td 2', 'sp 2', 'td 3', 'sp 3']) 
     return df, label
