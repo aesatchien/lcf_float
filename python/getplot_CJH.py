@@ -31,4 +31,3 @@ if sys.platform == "win32":
     os.system('mspaint.exe {0} + &'.format(p.absolute()))
 else: # linux on the pi
     os.system('display ' + './/png//' + fname + ' &')
-    

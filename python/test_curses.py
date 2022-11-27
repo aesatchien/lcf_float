@@ -23,28 +23,31 @@ dummy_data = {'axis': {0: 'A0',  1: 'A1',  2: 'A2',  3: 'A3',  4: 'B0',  5: 'B1'
 'td max': {0: '----',  1: '----',  2: '----',  3: '----',  4: '----',  5: '----',  6: '----',  7: '----'}}
 dummy_df = pd.DataFrame(dummy_data)
 
+columns = ['axis', 'td dec', 'td 256', 'sp dec', 'sp 256', 'P gain',
+           'I gain', 'D gain', 'rev', 'td min', 'td max']
 
-
+# query the BREFBs, but substitute in dummy values if one is missing
 def get_updates():
 
-    if list(brefb.ipdict.values())[0] == None:
+    if brefb.ipdict['a'] == None:
         temp_a = dummy_df.iloc[0:4]  # just show blanks
     else:
         confa = brefb.get_conf_df('a')
         state_a = brefb.current_state_df('a')
         temp_a = pd.concat([state_a, confa], axis=1)
         temp_a['axis'] = 'A' + temp_a['axis'].astype(str)
-    if list(brefb.ipdict.values())[1] == None:
+        temp_a.columns = columns
+
+    if brefb.ipdict['b'] == None:
         temp_b = dummy_df.iloc[4:]  # just show blanks
     else:
         confb = brefb.get_conf_df('b')
         state_b = brefb.current_state_df('b')
         temp_b = pd.concat([state_b, confb], axis=1)
         temp_b['axis'] = 'B' + temp_b['axis'].astype(str)
+        temp_b.columns = columns
 
     console_df = pd.concat([temp_a, temp_b])
-    console_df.columns = ['axis', 'td dec', 'td 256', 'sp dec', 'sp 256', 'P gain', 'I gain', 'D gain', 'rev', 'td min',
-                          'td max']
     return console_df
 
 if __name__ == '__main__':
@@ -78,7 +81,13 @@ if __name__ == '__main__':
     curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK)
     curses.init_pair(3, curses.COLOR_GREEN, curses.COLOR_BLACK)
 
+    count = 0
     while True:
+
+        count = count + 1  # attempt to reconnect every minute if we lost connection
+        if count % 60 == 0 and None in list(brefb.ipdict.values()):
+            brefb.set_banks(verbose=True)
+
         console_df = get_updates()
         now = datetime.datetime.now().strftime('%m/%d/%Y %H:%M:%S')
         msg = f'*** BREFB POLLING DATA FOR {now} ***'
